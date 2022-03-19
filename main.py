@@ -1,57 +1,71 @@
 from flask import Flask, render_template
 import util
 
-# create an application instance
-# all requests it receives from clients to this object for handling
-# we are instantiating a Flask object by passing __name__ argument to the Flask constructor. 
-# The Flask constructor has one required argument which is the name of the application package. 
-# Most of the time __name__ is the correct value. The name of the application package is used 
-# by Flask to find static assets, templates and so on.
 app = Flask(__name__)
 
-# evil global variables
-# can be placed in a config file
-# here is a possible tutorial how you can do this
 username='braxtonchambers'
-password='1221'
+password='1221'  
 host='127.0.0.1'
 port='5432'
 database='dvdrental'
 
-# route is used to map a URL with a Python function
-# complete address: ip:port/
-# 127.0.0.1:5000/
 @app.route('/')
-# this is how you define a function in Python
 def index():
-    # TODO: connect to DB
+    # Connects to Database
     cursor, connection = util.connect_to_db(username,password,host,port,database)
-    
-    # TODO: delete cucumber from basket_a
-    # use function in util.py
-    record1 = util.run_and_commit_sql(cursor, connection, "delete from basket_a where fruit_a='Cucumber'")
-    if record1 == -1:
-        # you can replace this part with a 404 page
+    # Executes SQL Commands
+    record = util.run_and_fetch_sql(cursor,"Select fruit_a, fruit_b from basket_a, basket_b;")
+    if record == -1:
         print('Something is wrong with the SQL command')
-    # TODO: check what is uniquely in basket_a but not in basket_b
-    # use a varilable name record2 to store the sql results
-    record2 = util.run_and_fetch_sql(cursor,
-        "select fruit_a from basket_a left join \
-        basket_b on fruit_a=fruit_b where b is NULL;")
-    
-    # TODO: disconnect from database
+    else:
+        # Returns All Column Names Selected
+        col_names = [desc[0] for desc in cursor.description]
+        # First 5 Rows
+        log = record[:5]
+    # Disconnects from Database
     util.disconnect_from_db(connection,cursor)
+    # Searches for file 'index.html'
+    return render_template('index.html', sql_table = log, table_title=col_names)
+
+
+@app.route("/api/update_basket_a")
+def update():
+    # Connects to Database
+    cursor, connection = util.connect_to_db(username,password,host,port,database)
+    # Executes SQL Commands
+    record = util.run_and_commit_sql(cursor,connection, "INSERT INTO basket_a (a, fruit_a)VALUES (5, 'Cherry');")
+    if record == -1:
+        print('Something is wrong with the SQL command')
+    else:
+        log = 'Success'
+        connection.commit()
+        
+    # Disconnects from Database
+    util.disconnect_from_db(connection,cursor)
+    return render_template('api/update_basket_a.html', log_html = log)
+
+
+@app.route("/api/unique")
+def unique():
+    # Connects to Database
+    cursor, connection = util.connect_to_db(username,password,host,port,database)
+    # Executes SQL Commands
+    record = util.run_and_fetch_sql(cursor, "select fruit_a, fruit_b from basket_a Full Outer Join basket_b on basket_a.fruit_a=basket_b.fruit_b Where basket_a.a is NULL or basket_b.b is Null")
     
-    # using render_template function, Flask will search
-    # the file named index.html under templates folder
-    return render_template('index.html', log_html = record2)
+    if record == -1:
+        print('Something is wrong with the SQL command')
+    else:
+        connection.commit()
+        col_names = [desc[0] for desc in cursor.description]
+        # First 5 Rows
+        log = record[:5]
+        # Disconnects from Database
+        util.disconnect_from_db(connection,cursor)
+        # Searches for file 'index.html'
+        return render_template('api/unique.html', sql_table = log, table_title=col_names)
 
 
 if __name__ == '__main__':
-	# set debug mode
     app.debug = True
-    # your local machine ip
     ip = '127.0.0.1'
     app.run(host=ip)
-
-    

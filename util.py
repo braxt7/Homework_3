@@ -2,7 +2,7 @@ import psycopg2
 from psycopg2 import Error
 
 # this function is based on the tutorial at: https://pynative.com/python-postgresql-tutorial/
-def connect_to_db(username='raywu1990',password='test',host='127.0.0.1',port='5432',database='dvdrental'):
+def connect_to_db(username='raywu1990',password='tests',host='127.0.0.1',port='5432',database='dvdrental'):
 	try:
 	    # Connect to an existing database
 	    connection = psycopg2.connect(user=username,
@@ -32,7 +32,7 @@ def disconnect_from_db(connection,cursor):
 
 
 # run_sql(cursor,"select from;")
-def run_and_fetch_sql(cursor, sql_string=""):
+def run_and_fetch_sql(cursor, sql_string="select fruit_a, fruit_b from basket_a Full Outer Join basket_b on basket_a.fruit_a=basket_b.fruit_b Where basket_a.a is NULL or basket_b.b is Null"):
 	try:
 	    # Executing a SQL query
 	    # cursor.execute("SELECT version();")
@@ -43,10 +43,12 @@ def run_and_fetch_sql(cursor, sql_string=""):
 	    # print("You are connected to - ", record, "\n")
 	    record = cursor.fetchall()
 	    # print("Here are the first 5 rows", record[:5])
+		
 	    return record
 	except (Exception, Error) as error:
 		print("Errors while executes the code: ", error)
 		return -1
+
 
 def run_and_commit_sql(cursor, connection, sql_string=""):
 	try:
