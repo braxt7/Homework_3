@@ -3,8 +3,8 @@ import util
 
 app = Flask(__name__)
 
-username='braxtonchambers'
-password='1221'  
+username='raywu1990'
+password='test'
 host='127.0.0.1'
 port='5432'
 database='dvdrental'
